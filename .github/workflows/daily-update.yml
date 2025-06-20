@@ -1,0 +1,40 @@
+name: Daily Repository Update
+
+on:
+  schedule:
+    # Runs at 08:00 UTC every day.
+    # This translates to 1:30 PM IST (8:00 UTC + 5:30 offset).
+    # You can adjust the hour (0-23) and minute (0-59) as needed.
+    # For example, "30 14 * * *" would run at 14:30 UTC (8:00 PM IST).
+    - cron: "0 8 * * *" # Specific hour and minute, no wildcards for hour/minute.
+  workflow_dispatch: # Allows manual triggering from the GitHub Actions UI
+
+jobs:
+  daily-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # This permission is crucial for the workflow to be able to commit and push changes
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Action to check out your repository's code
+
+      - name: Generate update file - 22f2001388@ds.study.iitm.ac.in
+        run: |
+          # Create a file with the current date and time to ensure a change is detected
+          CURRENT_DATETIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "Last daily update: ${CURRENT_DATETIME}" > daily_update_log.txt
+          echo "This commit is part of DevSync's automated daily repository update." >> daily_update_log.txt
+          echo "Workflow run ID: ${{ github.run_id }}" >> daily_update_log.txt
+          echo "Triggered by: ${{ github.event_name }}" >> daily_update_log.txt
+          echo "Runner OS: ${{ runner.os }}" >> daily_update_log.txt
+          echo "---" >> daily_update_log.txt # Add a separator for readability in future runs
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "22f2001388@ds.study.iitm.ac.in"
+          git config --local user.name "22f2001388@ds.study.iitm.ac.in"
+          git add daily_update_log.txt # Add the newly created/modified file
+          git commit -m "DevSync: Automated daily repository update [skip ci]" || exit 0 # Commit the changes
+          # The "|| exit 0" ensures the step doesn't fail if there are no changes to commit
+          git push # Push the commit to the repository
