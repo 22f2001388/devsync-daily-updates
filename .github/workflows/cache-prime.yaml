@@ -1,0 +1,26 @@
+name: cache-prime
+
+on:
+  workflow_dispatch:
+
+jobs:
+  prime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/deps
+          key: cache-a368d8b
+
+      - name: Prepare dependencies if miss
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .cache/deps
+          echo "seed" > .cache/deps/seed.txt
+
+      - name: prime-cache-a368d8b
+        run: echo "cache-hit=${{ steps.cache.outputs.cache-hit }}"
